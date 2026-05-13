@@ -4,6 +4,7 @@ import os
 from openai import OpenAI
 
 from core.services.llm.base import BaseLLM, LLMError
+from core.services.prompt_builder import build_classification_prompt
 
 
 class OpenAILLM(BaseLLM):
@@ -48,22 +49,4 @@ class OpenAILLM(BaseLLM):
         return data
 
     def _build_prompt(self, raw_text):
-        return f"""
-Classify the document into exactly one category:
-identity_document, employment_contract, payslip, invoice, tax_form, other.
-
-Extract key fields according to the detected category.
-
-Return only valid JSON with this exact structure:
-{{
-  "category": "one_of_the_allowed_categories",
-  "extracted_fields": {{
-    "field_name": "field_value"
-  }}
-}}
-
-Document text:
-\"\"\"
-{raw_text[:6000]}
-\"\"\"
-"""
+        return build_classification_prompt(raw_text)
