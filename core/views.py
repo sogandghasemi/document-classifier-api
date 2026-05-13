@@ -30,6 +30,18 @@ class ClassifiedDocumentViewSet(
 
         return ClassifiedDocumentDetailSerializer
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(
+            {
+                "count": queryset.count(),
+                "results": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
     def get_queryset(self):
         queryset = ClassifiedDocument.objects.all()
 
@@ -43,6 +55,16 @@ class ClassifiedDocumentViewSet(
             queryset = queryset.filter(confidence=confidence)
 
         return queryset
+
+    @action(detail=False, methods=["get"], url_path="health")
+    def health(self, request):
+        return Response(
+            {
+                "status": "ok",
+                "service": "document-classifier-api",
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=False, methods=["post"], url_path="classify")
     def classify(self, request):
