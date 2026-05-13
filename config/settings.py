@@ -8,9 +8,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = os.getenv(
+    "ALLOWED_HOSTS",
+    "localhost,127.0.0.1",
+).split(",")
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -23,6 +28,7 @@ INSTALLED_APPS = [
     "core",
 ]
 
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -33,12 +39,14 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
 ROOT_URLCONF = "config.urls"
+
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -50,7 +58,9 @@ TEMPLATES = [
     }
 ]
 
+
 WSGI_APPLICATION = "config.wsgi.application"
+
 
 DATABASES = {
     "default": {
@@ -59,17 +69,30 @@ DATABASES = {
     }
 }
 
+
 LANGUAGE_CODE = "en-us"
+
 TIME_ZONE = "Europe/Rome"
+
 USE_I18N = True
+
 USE_TZ = True
 
+
 STATIC_URL = "static/"
+
+STATICFILES_DIRS = []
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
     ],
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
@@ -77,3 +100,31 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.FormParser",
     ],
 }
+
+
+# =========================
+# LLM SETTINGS
+# =========================
+
+LLM_BACKEND = os.getenv("LLM_BACKEND", "local")
+
+LLM_TIMEOUT_SECONDS = int(
+    os.getenv("LLM_TIMEOUT_SECONDS", "30")
+)
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+
+OPENAI_MODEL = os.getenv(
+    "OPENAI_MODEL",
+    "gpt-4o-mini",
+)
+
+OLLAMA_BASE_URL = os.getenv(
+    "OLLAMA_BASE_URL",
+    "http://localhost:11434",
+)
+
+OLLAMA_MODEL = os.getenv(
+    "OLLAMA_MODEL",
+    "llama3:latest",
+)
