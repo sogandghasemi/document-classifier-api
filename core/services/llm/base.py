@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 
-
-class LLMError(Exception):
-    pass
+from core.exceptions import LLMServiceError
 
 
 class BaseLLM(ABC):
@@ -13,3 +11,6 @@ class BaseLLM(ABC):
         category, extracted_fields, model_used
         """
         raise NotImplementedError
+
+
+LLMError = LLMServiceError

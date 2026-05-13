@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from rest_framework.exceptions import ValidationError
+from core.exceptions import FileFileValidationError
 
 
 MAX_FILE_SIZE_MB = 5
@@ -17,10 +17,10 @@ ALLOWED_CONTENT_TYPES = {
 
 def validate_file_count(files):
     if not files:
-        raise ValidationError("At least one file is required.")
+        raise FileValidationError("At least one file is required.")
 
     if len(files) > MAX_FILES_PER_REQUEST:
-        raise ValidationError(
+        raise FileValidationError(
             f"Maximum {MAX_FILES_PER_REQUEST} files are allowed per request."
         )
 
@@ -30,16 +30,16 @@ def validate_uploaded_file(uploaded_file):
     content_type = getattr(uploaded_file, "content_type", "")
 
     if extension not in ALLOWED_EXTENSIONS:
-        raise ValidationError(
+        raise FileValidationError(
             f"Unsupported file extension '{extension}'. Allowed: PDF, JPG, JPEG, PNG."
         )
 
     if content_type not in ALLOWED_CONTENT_TYPES:
-        raise ValidationError(
+        raise FileValidationError(
             f"Unsupported content type '{content_type}'. Allowed: PDF, JPEG, PNG."
         )
 
     if uploaded_file.size > MAX_FILE_SIZE_BYTES:
-        raise ValidationError(
+        raise FileValidationError(
             f"File '{uploaded_file.name}' exceeds the {MAX_FILE_SIZE_MB} MB limit."
         )
