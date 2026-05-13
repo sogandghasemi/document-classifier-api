@@ -23,3 +23,6 @@ staticfiles/
 .DS_Store
 .vscode/
 .idea/
+test_Files/
+.env
+db.sqlite3

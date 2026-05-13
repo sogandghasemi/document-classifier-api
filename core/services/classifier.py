@@ -35,8 +35,6 @@ def classify_uploaded_file(uploaded_file):
             raw_text=raw_text,
         )
 
-        processing_time_ms = _elapsed_ms(start_time)
-
         return ClassifiedDocument.objects.create(
             filename=uploaded_file.name,
             category=category,
@@ -45,23 +43,32 @@ def classify_uploaded_file(uploaded_file):
             raw_text=raw_text,
             raw_text_preview=raw_text[:RAW_TEXT_PREVIEW_LENGTH],
             model_used=model_used,
-            processing_time_ms=processing_time_ms,
+            processing_time_ms=_elapsed_ms(start_time),
         )
 
     except DocumentProcessingError as exc:
-        processing_time_ms = _elapsed_ms(start_time)
+        return _save_failed_document(uploaded_file, start_time, str(exc))
 
-        return ClassifiedDocument.objects.create(
-            filename=getattr(uploaded_file, "name", "unknown"),
-            category=ClassifiedDocument.Category.OTHER,
-            confidence=ClassifiedDocument.Confidence.LOW,
-            extracted_fields={},
-            raw_text="",
-            raw_text_preview="",
-            model_used="",
-            processing_time_ms=processing_time_ms,
-            error_message=str(exc),
+    except Exception as exc:
+        return _save_failed_document(
+            uploaded_file,
+            start_time,
+            f"Unexpected processing error: {exc}",
         )
+
+
+def _save_failed_document(uploaded_file, start_time, error_message):
+    return ClassifiedDocument.objects.create(
+        filename=getattr(uploaded_file, "name", "unknown"),
+        category=ClassifiedDocument.Category.OTHER,
+        confidence=ClassifiedDocument.Confidence.LOW,
+        extracted_fields={},
+        raw_text="",
+        raw_text_preview="",
+        model_used="",
+        processing_time_ms=_elapsed_ms(start_time),
+        error_message=error_message,
+    )
 
 
 def _validate_category(category):
