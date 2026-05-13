@@ -48,4 +48,5 @@ def test_filter_by_category():
     response = client.get("/api/documents/?category=invoice")
 
     assert response.status_code == 200
-    assert len(response.data) == 1
+    assert response.data['count'] == 1
+    assert len(response.data['results']) == 1
