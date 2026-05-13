@@ -2,18 +2,13 @@ from pathlib import Path
 
 import fitz
 import pytesseract
-from PIL import Image
-
-from core.services.validator import validate_uploaded_file
+from PIL import Image, ImageFilter, ImageOps
 
 from core.exceptions import TextExtractionError
+from core.services.validator import validate_uploaded_file
 
 
 def extract_text_from_file(uploaded_file):
-    """
-    Route the uploaded file to the correct extractor based on extension.
-    Supports PDF, JPEG, JPG, and PNG.
-    """
     validate_uploaded_file(uploaded_file)
 
     extension = Path(uploaded_file.name).suffix.lower()
@@ -27,6 +22,9 @@ def extract_text_from_file(uploaded_file):
 
         raise TextExtractionError(f"Unsupported file type: {extension}")
 
+    except TextExtractionError:
+        raise
+
     except Exception as exc:
         raise TextExtractionError(
             f"Could not extract text from '{uploaded_file.name}': {exc}"
@@ -34,12 +32,6 @@ def extract_text_from_file(uploaded_file):
 
 
 def extract_text_from_pdf(uploaded_file):
-    """
-    Extract selectable text from PDF pages using PyMuPDF.
-
-    PyMuPDF is fast, lightweight, and works well for text-based PDFs.
-    For scanned PDFs, OCR would be needed as a future improvement.
-    """
     uploaded_file.seek(0)
     file_bytes = uploaded_file.read()
 
@@ -62,21 +54,38 @@ def extract_text_from_pdf(uploaded_file):
 
 
 def extract_text_from_image(uploaded_file):
-    """
-    Extract text from image using Tesseract OCR.
-    """
     uploaded_file.seek(0)
 
     image = Image.open(uploaded_file)
-    image = image.convert("RGB")
+    image = preprocess_image_for_ocr(image)
 
     text = pytesseract.image_to_string(
         image,
         lang="eng+ita",
-        config="--psm 6",
+        config="--oem 3 --psm 6",
     ).strip()
 
     if not text:
         raise TextExtractionError("No text detected in image.")
 
     return text
+
+
+def preprocess_image_for_ocr(image):
+    image = image.convert("L")
+
+    image = ImageOps.autocontrast(image)
+
+    scale_factor = 2
+    new_size = (
+        image.width * scale_factor,
+        image.height * scale_factor,
+    )
+    image = image.resize(new_size)
+
+    image = image.filter(ImageFilter.SHARPEN)
+
+    threshold = 180
+    image = image.point(lambda pixel: 255 if pixel > threshold else 0)
+
+    return image
