@@ -26,3 +26,29 @@ staticfiles/
 test_Files/
 .env
 db.sqlite3
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Virtual env
+.venv/
+venv/
+
+# Local data
+db.sqlite3
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Static files
+staticfiles/
+
+# Test uploads
+test_files/
