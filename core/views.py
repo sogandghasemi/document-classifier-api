@@ -58,10 +58,14 @@ class ClassifiedDocumentViewSet(
 
     @action(detail=False, methods=["get"], url_path="health")
     def health(self, request):
+        from django.conf import settings
+
         return Response(
             {
                 "status": "ok",
                 "service": "document-classifier-api",
+                "version": "1.0.0",
+                "llm_backend": settings.LLM_BACKEND,
             },
             status=status.HTTP_200_OK,
         )
