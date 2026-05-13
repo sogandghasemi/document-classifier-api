@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from core.exceptions import FileFileValidationError
+from core.exceptions import FileValidationError
 
 
 MAX_FILE_SIZE_MB = 5
