@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document Classifier API</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 50px auto;
+            padding: 24px;
+        }
+
+        .header {
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            margin-bottom: 8px;
+            font-size: 32px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .hint {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
+
+        input[type="file"] {
+            display: block;
+            padding: 14px;
+            border: 1px dashed #9ca3af;
+            border-radius: 10px;
+            width: 100%;
+            background: #f9fafb;
+            margin-bottom: 18px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .links a {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        pre {
+            background: #111827;
+            color: #d1d5db;
+            padding: 18px;
+            border-radius: 12px;
+            overflow-x: auto;
+            min-height: 160px;
+            white-space: pre-wrap;
+        }
+
+        .status {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Document Classifier API</h1>
+        <p>Upload PDF or image documents and classify them using the configured LLM backend.</p>
+        <div>
+            <span class="badge">PDF</span>
+            <span class="badge">JPEG</span>
+            <span class="badge">PNG</span>
+            <span class="badge">Max 3 files</span>
+            <span class="badge">Max 5 MB each</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Upload documents</h2>
+        <p class="hint">
+            Select one or more files. The API will extract text, classify the document,
+            extract key fields, calculate confidence, and save the result.
+        </p>
+
+        <form id="upload-form">
+            <input type="file" id="files" name="files" multiple accept=".pdf,.jpg,.jpeg,.png">
+            <button id="submit-button" type="submit">Classify documents</button>
+        </form>
+
+        <div class="status" id="status">Ready.</div>
+
+        <div class="links">
+            <a href="/api/documents/" target="_blank">View saved documents</a>
+            <a href="/api/documents/health/" target="_blank">Health check</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>API response</h2>
+        <pre id="response">No request yet.</pre>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById("upload-form");
+    const responseBox = document.getElementById("response");
+    const statusBox = document.getElementById("status");
+    const submitButton = document.getElementById("submit-button");
+
+    form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const input = document.getElementById("files");
+
+        if (!input.files.length) {
+            statusBox.textContent = "Please select at least one file.";
+            return;
+        }
+
+        if (input.files.length > 3) {
+            statusBox.textContent = "Maximum 3 files are allowed.";
+            return;
+        }
+
+        const formData = new FormData();
+
+        for (const file of input.files) {
+            formData.append("files", file);
+        }
+
+        submitButton.disabled = true;
+        statusBox.textContent = "Processing documents...";
+        responseBox.textContent = "Waiting for API response...";
+
+        try {
+            const response = await fetch("/api/documents/classify/", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            responseBox.textContent = JSON.stringify(data, null, 2);
+            statusBox.textContent = response.ok
+                ? "Classification completed."
+                : "Request completed with an error.";
+        } catch (error) {
+            responseBox.textContent = "Error: " + error;
+            statusBox.textContent = "Request failed.";
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
